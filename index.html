@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ZionLab: laboratorios virtuales interactivos de Física.">
+  <title>ZionLab · Laboratorios virtuales de Física</title>
+  <style>
+    :root{
+      color-scheme:light;
+      --yellow:#FDBA30;--bg:#F6F7F8;--panel:#FFFFFF;--control:#FFFFFF;
+      --border:#D9DEE3;--text:#111111;--muted:#5F6368;
+      --cyan:#00B9FF;--violet:#9500FF;--magenta:#FF00DA;
+      --shadow:0 14px 38px rgba(0,0,0,.09);
+    }
+    body.dark{
+      color-scheme:dark;
+      --bg:#101010;--panel:#151515;--control:#1E1E1E;
+      --border:#383838;--text:#F5F5F5;--muted:#BFC3C7;
+      --shadow:0 14px 38px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+      line-height:1.5;transition:background .25s,color .25s;
+    }
+    button,a{font:inherit}
+    .page{width:min(1240px,calc(100% - 32px));margin:auto;padding:18px 0 44px}
+    .card{background:var(--panel);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .site-header{
+      min-height:104px;padding:12px 22px;border-radius:20px;
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;
+    }
+    .brand-logo{width:150px;height:78px;object-fit:contain}
+    .brand-kicker{margin:0;color:#7A5700;font-size:.74rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase}
+    body.dark .brand-kicker{color:var(--yellow)}
+    .brand-title{margin:1px 0 0;font-size:clamp(1.75rem,4vw,2.55rem);line-height:1;font-weight:950;letter-spacing:-.04em}
+    .brand-title span{color:var(--yellow)}
+    .brand-subtitle{margin:7px 0 0;color:var(--muted)}
+    .theme-button{
+      width:48px;height:48px;border:1px solid var(--border);border-radius:14px;
+      background:var(--control);color:var(--text);display:grid;place-items:center;
+      cursor:pointer;transition:transform .18s,border-color .18s,background .18s;
+    }
+    .theme-button:hover{transform:translateY(-2px);border-color:var(--yellow)}
+    .theme-button img{width:25px;height:25px;object-fit:contain}
+    .hero{
+      position:relative;overflow:hidden;margin-top:18px;border-radius:24px;
+      padding:clamp(30px,6vw,72px);min-height:330px;display:flex;align-items:center;
+      background:#050505;color:#fff;border:1px solid #272727;
+    }
+    .hero::before{
+      content:"";position:absolute;inset:-50%;opacity:.75;
+      background:radial-gradient(circle at 68% 42%,rgba(0,185,255,.36),transparent 20%),
+      radial-gradient(circle at 76% 58%,rgba(149,0,255,.32),transparent 18%),
+      radial-gradient(circle at 88% 34%,rgba(255,0,218,.24),transparent 16%);
+      animation:drift 10s ease-in-out infinite alternate;
+    }
+    .hero::after{
+      content:"";position:absolute;right:7%;top:50%;width:min(29vw,300px);aspect-ratio:1;
+      transform:translateY(-50%);border:2px solid rgba(253,186,48,.5);border-radius:50%;
+      box-shadow:0 0 0 24px rgba(253,186,48,.07),0 0 0 52px rgba(0,185,255,.05);
+    }
+    @keyframes drift{to{transform:translate3d(-3%,3%,0) scale(1.06)}}
+    .hero-content{position:relative;z-index:1;max-width:720px}
+    .hero-label{display:inline-flex;align-items:center;gap:9px;margin-bottom:15px;color:var(--yellow);font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem}
+    .hero-label::before{content:"";width:28px;height:3px;background:var(--yellow);border-radius:4px}
+    .hero h2{font-size:clamp(2.15rem,5.5vw,4.35rem);line-height:1.02;letter-spacing:-.055em;margin:0;max-width:690px}
+    .hero p{font-size:clamp(1rem,2vw,1.18rem);color:#D6D9DC;max-width:620px;margin:18px 0 26px}
+    .hero-button{
+      display:inline-flex;align-items:center;gap:10px;padding:13px 19px;border-radius:12px;
+      background:var(--yellow);color:#111;text-decoration:none;font-weight:900;
+      box-shadow:0 10px 25px rgba(253,186,48,.2);transition:transform .18s,box-shadow .18s;
+    }
+    .hero-button:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(253,186,48,.32)}
+    .catalog{padding-top:44px}
+    .section-heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:20px}
+    .section-heading h2{margin:0;font-size:clamp(1.65rem,3vw,2.2rem);letter-spacing:-.03em}
+    .section-heading p{margin:5px 0 0;color:var(--muted)}
+    .count{flex:none;padding:8px 12px;border:1px solid var(--border);border-radius:999px;color:var(--muted);font-size:.86rem;font-weight:800;background:var(--panel)}
+    .sim-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+    .sim-card{
+      position:relative;overflow:hidden;min-height:270px;border-radius:19px;padding:22px;
+      display:flex;flex-direction:column;transition:transform .2s,border-color .2s,box-shadow .2s;
+    }
+    .sim-card:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 18px 44px rgba(0,0,0,.14)}
+    .sim-card::after{content:"";position:absolute;right:-48px;top:-48px;width:138px;height:138px;border-radius:50%;background:var(--accent);opacity:.1}
+    .sim-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .sim-number{font-size:.78rem;font-weight:950;letter-spacing:.12em;color:var(--accent)}
+    .sim-icon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:1.35rem;font-weight:900}
+    .sim-topic{margin:20px 0 6px;color:var(--muted);font-size:.77rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .sim-card h3{margin:0;font-size:1.3rem;line-height:1.18;letter-spacing:-.02em}
+    .sim-card p{margin:10px 0 20px;color:var(--muted);font-size:.93rem}
+    .sim-link{margin-top:auto;display:inline-flex;align-items:center;gap:7px;color:var(--text);font-weight:900;text-decoration:none;width:max-content}
+    .sim-link::after{content:"→";color:var(--accent);font-size:1.15rem;transition:transform .18s}
+    .sim-link:hover::after{transform:translateX(4px)}
+    .sim-card[data-accent="yellow"]{--accent:#C28700}
+    body.dark .sim-card[data-accent="yellow"]{--accent:#FDBA30}
+    .sim-card[data-accent="cyan"]{--accent:#00A9E8}
+    .sim-card[data-accent="violet"]{--accent:#9500FF}
+    .sim-card[data-accent="magenta"]{--accent:#E500C5}
+    .footer{margin-top:30px;padding:20px;text-align:center;color:var(--muted);font-size:.88rem}
+    @media(max-width:900px){.sim-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hero::after{opacity:.45}}
+    @media(max-width:640px){
+      .page{width:min(100% - 18px,1240px);padding-top:9px}.site-header{grid-template-columns:auto 1fr auto;padding:10px 13px;gap:12px}.brand-logo{width:94px;height:58px}.brand-kicker{display:none}.brand-title{font-size:1.6rem}.brand-subtitle{font-size:.8rem;margin-top:4px}.theme-button{width:43px;height:43px}.hero{padding:34px 23px;min-height:360px}.hero::after{right:-100px}.section-heading{align-items:flex-start}.count{display:none}.sim-grid{grid-template-columns:1fr}.sim-card{min-height:245px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="site-header card">
+      <img class="brand-logo" src="LOGO UPN.png" alt="Logo UPN">
+      <div>
+        <p class="brand-kicker">SIMULADORES de Física</p>
+        <h1 class="brand-title">Zion<span>Lab</span></h1>
+        <p class="brand-subtitle">Experimenta, analiza y comprende.</p>
+      </div>
+      <button class="theme-button" id="themeButton" type="button" aria-label="Activar modo oscuro" title="Cambiar modo claro u oscuro">
+        <img src="Vista.png" alt="" aria-hidden="true">
+      </button>
+    </header>
+
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero-content">
+        <div class="hero-label">Aprendizaje interactivo</div>
+        <h2 id="heroTitle">La Física se comprende cuando puedes experimentar con ella.</h2>
+        <p>Modifica variables, observa el comportamiento del sistema, registra resultados y compara tus cálculos con la simulación.</p>
+        <a class="hero-button" href="#simuladores">Explorar simuladores <span aria-hidden="true">↓</span></a>
+      </div>
+    </section>
+
+    <section class="catalog" id="simuladores" aria-labelledby="catalogTitle">
+      <div class="section-heading">
+        <div><h2 id="catalogTitle">Simuladores disponibles</h2>
+        <p>Selecciona una experiencia para comenzar.</p></div>
+        <span class="count">7 simuladores</span>
+      </div>
+
+      <div class="sim-grid">
+        <article class="sim-card card" data-accent="cyan"><div class="sim-top"><span class="sim-number">SIM 01</span><span class="sim-icon" aria-hidden="true">↗</span></div><div class="sim-topic">Dinámica</div><h3>Análisis dinámico del móvil</h3><p>Estudia un carro sobre una rampa conectado a una masa suspendida, con y sin rozamiento.</p><a class="sim-link" href="Sim 1 Análisis Dinemático del Móvil.html">Abrir simulador</a></article>
+        <article class="sim-card card" data-accent="magenta"><div class="sim-top"><span class="sim-number">SIM 02</span><span class="sim-icon" aria-hidden="true">⌁</span></div><div class="sim-topic">Cinemática</div><h3>Zona de impacto</h3><p>Analiza el alcance y la trayectoria de un proyectil variando sus condiciones de lanzamiento.</p><a class="sim-link" href="Sim 2  Zona de Impacto.html">Abrir simulador</a></article>
+        <article class="sim-card card" data-accent="violet"><div class="sim-top"><span class="sim-number">SIM 03</span><span class="sim-icon" aria-hidden="true">△</span></div><div class="sim-topic">Estática</div><h3>Equilibrio con cables</h3><p>Explora el equilibrio traslacional y rotacional y la distribución de tensiones.</p><a class="sim-link" href="Sim 3  Equilibrio con cables.html">Abrir simulador</a></article>
+        <article class="sim-card card" data-accent="yellow"><div class="sim-top"><span class="sim-number">SIM 04</span><span class="sim-icon" aria-hidden="true">●</span></div><div class="sim-topic">Dinámica circular</div><h3>Fuerza centrípeta en acción</h3><p>Comprueba cómo la masa, el radio y la velocidad determinan la fuerza centrípeta.</p><a class="sim-link" href="Sim 4 Fuerza centrípeta en acción.html">Abrir simulador</a></article>
+        <article class="sim-card card" data-accent="cyan"><div class="sim-top"><span class="sim-number">SIM 05</span><span class="sim-icon" aria-hidden="true">⇧</span></div><div class="sim-topic">Trabajo y potencia</div><h3>Elevador de carga</h3><p>Calcula el trabajo gravitatorio y la potencia requerida para elevar una carga.</p><a class="sim-link" href="Sim 5 Elevador de Carga.html">Abrir simulador</a></article>
+        <article class="sim-card card" data-accent="violet"><div class="sim-top"><span class="sim-number">SIM 06</span><span class="sim-icon" aria-hidden="true">≋</span></div><div class="sim-topic">Energía mecánica</div><h3>Sistema de amortiguación</h3><p>Observa las transformaciones de energía y la compresión de un resorte.</p><a class="sim-link" href="Sim 6  Sistema de Amortiguación.html">Abrir simulador</a></article>
+        <article class="sim-card card" data-accent="magenta"><div class="sim-top"><span class="sim-number">SIM 07</span><span class="sim-icon" aria-hidden="true">◎</span></div><div class="sim-topic">Energía rotacional</div><h3>Plataforma de clasificación</h3><p>Experimenta con rotación, torque, velocidad tangencial y condiciones de equilibrio.</p><a class="sim-link" href="Sim 7  Plataforma de Clasificación.html">Abrir simulador</a></article>
+      </div>
+    </section>
+
+    <footer class="footer">ZionLab · Laboratorios virtuales de Física</footer>
+  </main>
+  <script>
+    (() => {
+      const body = document.body;
+      const button = document.getElementById('themeButton');
+      const storedTheme = localStorage.getItem('zionlab-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (storedTheme === 'dark' || (!storedTheme && prefersDark)) body.classList.add('dark');
+      const updateLabel = () => button.setAttribute('aria-label', body.classList.contains('dark') ? 'Activar modo claro' : 'Activar modo oscuro');
+      updateLabel();
+      button.addEventListener('click', () => {
+        body.classList.toggle('dark');
+        localStorage.setItem('zionlab-theme', body.classList.contains('dark') ? 'dark' : 'light');
+        updateLabel();
+      });
+    })();
+  </script>
+</body>
+</html>

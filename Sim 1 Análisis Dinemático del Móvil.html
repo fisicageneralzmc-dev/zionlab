@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simulador de Cinemática - Plano Inclinado</title>
+<style>
+:root{
+  --yellow:#FDBA30; --white:#FFFFFF; --black:#000000;
+  --bg:#FFFFFF; --bg2:#F6F7F8; --panel:#FFFFFF; --control:#FFFFFF;
+  --border:#D9DEE3; --text:#111111; --muted:#5F6368;
+  --cyan:#00B9FF; --cyan2:#A1D7FF;
+  --violet:#9500FF; --violet2:#BC5EFF;
+  --magenta:#FF00DA; --magenta2:#FF5EE8;
+  --success:#2EBD85; --warning:#F28C28; --error:#E5484D;
+  --shadow:0 12px 36px rgba(0,0,0,.08);
+}
+body.dark{
+  --bg:#000000; --bg2:#101010; --panel:#151515; --control:#1E1E1E;
+  --border:#383838; --text:#F5F5F5; --muted:#BFC3C7;
+  --shadow:0 12px 36px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg2); color:var(--text); line-height:1.5;
+}
+button,input{font:inherit}
+.app{width:min(1480px,calc(100% - 28px)); margin:0 auto 42px}
+header{
+  margin:18px auto 0; padding:20px 22px; border:1px solid var(--border); border-radius:18px;
+  background:var(--panel); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:space-between; gap:20px;
+}
+.kicker{font-size:.72rem; font-weight:900; letter-spacing:.14em; color:#7A5700}
+body.dark .kicker{color:var(--yellow)}
+h1{margin:3px 0 5px; font-size:clamp(1.55rem,3vw,2.35rem); line-height:1.1}
+.subtitle{margin:0; color:var(--muted); max-width:760px}
+.header-right{display:flex; align-items:center; gap:10px}
+.lab-menu{
+  min-width:190px;height:44px;padding:0 38px 0 13px;border-radius:12px;border:1px solid var(--border);
+  background:var(--control);color:var(--text);cursor:pointer;font-weight:800
+}
+.icon-btn{
+  width:44px;height:44px;border-radius:12px;border:1px solid var(--border);
+  background:var(--control);color:var(--text);cursor:pointer;font-weight:800;
+  display:inline-grid;place-items:center;text-decoration:none;font-size:1.25rem
+}
+.icon-btn:hover,.lab-menu:hover{border-color:var(--yellow)}
+.logo{
+  min-width:108px;height:48px;border-radius:12px;background:var(--black);color:var(--white);
+  display:grid;place-items:center;font-weight:900;letter-spacing:.08em;border:3px solid var(--yellow)
+}
+body.dark .logo{background:var(--white);color:var(--black)}
+.grid{display:grid;gap:16px}
+.card{
+  background:var(--panel); border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow)
+}
+.section{margin-top:16px}
+.section-head{
+  padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)
+}
+.badge{
+  min-width:40px;height:28px;padding:0 10px;border-radius:999px;background:var(--yellow);
+  color:#000;display:inline-grid;place-items:center;font-size:.72rem;font-weight:900
+}
+.section-head h2{margin:0;font-size:1.15rem}
+.section-head p{margin:2px 0 0;color:var(--muted);font-size:.88rem}
+.theory-content{display:grid;grid-template-columns:1fr 1.35fr;gap:14px;padding:16px}
+.mini-card{padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--bg2)}
+.mini-card h3{margin:0 0 8px;font-size:1rem}
+.mini-card p{margin:0;color:var(--muted)}
+.eq-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.eq{
+  border:1px solid var(--border);border-radius:12px;background:var(--control);
+  padding:14px 12px;text-align:center;font-size:1.06rem;
+  display:flex;align-items:center;justify-content:center;min-height:74px
+}
+.eq math{
+  font-family:"STIX Two Math","Cambria Math","Latin Modern Math","Times New Roman",serif;
+  color:var(--text);
+  font-size:1.08em;
+}
+.sim-layout{display:grid;grid-template-columns:330px 1fr;gap:16px;padding:16px;align-items:stretch}
+.controls{padding:16px}
+.controls h3{margin:0 0 14px}
+.control{margin-bottom:18px}
+.control-row{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+.control-row label{font-size:.86rem;font-weight:800}
+.value-pill{
+  min-width:78px;text-align:center;padding:5px 8px;border-radius:10px;
+  background:var(--bg2);border:1px solid var(--border);font-weight:900;font-variant-numeric:tabular-nums
+}
+input[type="range"]{width:100%; accent-color:var(--yellow); cursor:pointer}
+.helper{font-size:.77rem;color:var(--muted);margin-top:4px}
+.control-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mount-selector{
+  margin-bottom:18px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--bg2)
+}
+.mount-selector-title{font-size:.86rem;font-weight:900;margin-bottom:8px}
+.mount-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mount-option{position:relative}
+.mount-option input{position:absolute;opacity:0;pointer-events:none}
+.mount-option label{
+  display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 10px;
+  border:1px solid var(--border);border-radius:10px;background:var(--control);color:var(--text);
+  font-size:.8rem;font-weight:900;text-align:center;cursor:pointer
+}
+.mount-option input:checked + label{background:var(--yellow);color:#000;border-color:var(--yellow)}
+
+.dial-control{display:flex;flex-direction:column;gap:10px}
+.dials-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+.dials-row .control{
+  margin-bottom:0;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:var(--bg2);
+}
+.dials-row .dial-wrap{
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+.dials-row .dial-scale{width:100%}
+.dials-row .dial-minmax{justify-content:center}
+
+.manual-control{
+  display:grid;
+  grid-template-columns:1fr 96px auto;
+  gap:8px;
+  align-items:center;
+  margin-top:8px;
+}
+
+.single-value-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+.single-value-row label{
+  font-size:.86rem;
+  font-weight:800;
+}
+.single-value-box{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.single-value-box input[type="number"]{
+  width:92px;
+  min-height:38px;
+  padding:6px 8px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--control);
+  color:var(--text);
+  font-weight:900;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+}
+.single-value-box .unit{
+  color:var(--muted);
+  font-size:.78rem;
+  font-weight:700;
+  white-space:nowrap;
+}
+.manual-control input[type="number"]{
+  width:96px;
+  min-height:38px;
+  padding:6px 8px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--control);
+  color:var(--text);
+  font-weight:800;
+  text-align:center;
+}
+.manual-control .unit{
+  color:var(--muted);
+  font-size:.78rem;
+  font-weight:700;
+  white-space:nowrap;
+}
+.dial-manual{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:6px;
+  margin-top:8px;
+}
+.dial-manual input[type="number"]{
+  width:82px;
+  min-height:36px;
+  padding:6px 7px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:var(--control);
+  color:var(--text);
+  font-weight:800;
+  text-align:center;
+}
+.dial-manual .unit{
+  color:var(--muted);
+  font-size:.78rem;
+  font-weight:700;
+}
+.gravity-inline{
+  display:grid;
+  grid-template-columns:auto 88px auto;
+  align-items:center;
+  gap:8px;
+}
+.gravity-inline label{
+  font-size:.86rem;
+  font-weight:800;
+}
+.gravity-inline input{
+  width:88px;
+  min-height:40px;
+  padding:7px 8px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--control);
+  color:var(--text);
+  font-weight:800;
+  text-align:center;
+}
+.gravity-inline .unit{
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.dial-wrap{display:flex;align-items:center;gap:14px}
+.dial{
+  --angle:0deg;width:108px;height:108px;border-radius:50%;position:relative;flex:0 0 auto;
+  cursor:grab;touch-action:none;
+  background:
+    radial-gradient(circle at center,var(--control) 0 47%,transparent 48%),
+    conic-gradient(from -135deg,var(--yellow) 0deg,var(--yellow) var(--angle),
+    var(--border) var(--angle),var(--border) 270deg,transparent 270deg);
+  border:1px solid var(--border);box-shadow:inset 0 0 0 8px var(--panel)
+}
+.dial:active{cursor:grabbing}
+.dial::before{
+  content:"";position:absolute;width:4px;height:35px;left:50%;top:50%;border-radius:4px;
+  background:var(--text);transform-origin:50% 100%;
+  transform:translate(-50%,-100%) rotate(calc(-135deg + var(--angle)))
+}
+.dial::after{
+  content:"";position:absolute;width:14px;height:14px;left:50%;top:50%;
+  transform:translate(-50%,-50%);border-radius:50%;background:var(--yellow);
+  border:3px solid var(--text)
+}
+.dial-scale{flex:1;min-width:0}
+.dial-title{font-size:.86rem;font-weight:800;margin-bottom:6px}
+.dial-readout{
+  display:inline-block;min-width:88px;padding:7px 10px;border-radius:10px;background:var(--bg2);
+  border:1px solid var(--border);font-weight:900;text-align:center;font-variant-numeric:tabular-nums
+}
+.dial-minmax{display:flex;justify-content:space-between;gap:10px;margin-top:7px;color:var(--muted);font-size:.74rem}
+.dial-input{position:absolute;opacity:0;pointer-events:none}
+
+.btn{
+  border:1px solid transparent;border-radius:11px;min-height:44px;padding:0 14px;font-weight:900;cursor:pointer;
+  transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--yellow);color:#000}
+.btn-secondary{background:var(--control);color:var(--text);border-color:var(--border)}
+.btn-danger{background:var(--control);color:var(--error);border-color:var(--border)}
+.btn-wide{grid-column:1/-1}
+.stage-card{overflow:hidden;display:flex;flex-direction:column;height:100%}
+.stage-top{
+  padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px
+}
+.stage-top strong{font-size:.95rem}
+.status{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.83rem}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--success);box-shadow:0 0 0 4px rgba(46,189,133,.12)}
+.stage-wrap{
+  flex:1;
+  min-height:470px;
+  height:auto;
+  position:relative;
+  overflow:hidden;
+  background:
+  linear-gradient(var(--border) 1px, transparent 1px),
+  linear-gradient(90deg,var(--border) 1px,transparent 1px), var(--bg);
+  background-size:32px 32px
+}
+#scene{width:100%;height:100%;display:block}
+.readouts{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;padding:12px;border-top:1px solid var(--border)}
+.readout{padding:10px 12px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
+.readout span{display:block;color:var(--muted);font-size:.72rem}
+.readout strong{font-size:1rem;font-variant-numeric:tabular-nums}
+.readout.x{border-top:3px solid var(--cyan)}
+.readout.v{border-top:3px solid var(--violet2)}
+.readout.a{border-top:3px solid var(--magenta2)}
+.readout.t{border-top:3px solid var(--yellow)}
+.readout.time{border-top:3px solid var(--success)}
+.graphs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:16px}
+.graph{padding:14px}
+.graph h3{margin:0 0 10px;font-size:.95rem}
+.graph small{color:var(--muted)}
+canvas.chart{width:100%;height:250px;border-radius:12px;background:var(--bg);border:1px solid var(--border)}
+.data-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
+.tabs-shell{
+  margin-top:16px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.tabs-bar{
+  display:flex;
+  gap:8px;
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  background:var(--panel);
+}
+.tab-btn{
+  min-height:42px;
+  padding:0 18px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--control);
+  color:var(--text);
+  font-weight:900;
+  cursor:pointer;
+  transition:background .15s ease, transform .15s ease, border-color .15s ease;
+}
+.tab-btn:hover{transform:translateY(-1px)}
+.tab-btn.active{
+  background:var(--yellow);
+  color:#000;
+  border-color:var(--yellow);
+}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.data-head h2{margin:0;font-size:1.15rem}
+.table-wrap{max-height:420px;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:680px}
+thead{position:sticky;top:0;z-index:1}
+th{
+  padding:12px 10px;background:var(--yellow);color:#000;border-bottom:1px solid var(--border);
+  font-size:.82rem;text-align:center
+}
+td{padding:10px;border-bottom:1px solid var(--border);text-align:center;font-variant-numeric:tabular-nums;font-size:.84rem}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--bg2) 72%, transparent)}
+.xc{color:var(--cyan)} .vc{color:var(--violet2)} .ac{color:var(--magenta2)}
+.notice{
+  margin:0 16px 16px;padding:11px 12px;border-radius:12px;background:var(--bg2);
+  border:1px solid var(--border);color:var(--muted);font-size:.8rem
+}
+.objective-card{margin-top:16px;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:14px;border-left:5px solid var(--yellow)}
+.objective-icon{width:46px;height:46px;border-radius:14px;background:var(--yellow);color:#000;display:grid;place-items:center;font-size:1.35rem;font-weight:900}
+.objective-card h2{margin:0 0 5px;font-size:1.12rem}.objective-card p{margin:0;color:var(--muted)}
+.challenge{margin:0 0 16px;padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--bg2)}
+.challenge h3{margin:0 0 5px;font-size:1rem}.challenge p{margin:0 0 12px;color:var(--muted);font-size:.86rem}
+.answer-row{display:grid;grid-template-columns:minmax(150px,1fr) auto;gap:9px}
+.answer-input{display:flex;align-items:center;border:1px solid var(--border);border-radius:11px;background:var(--control);overflow:hidden}
+.answer-input input{width:100%;min-width:0;padding:10px 12px;border:0;outline:0;background:transparent;color:var(--text);font-weight:900}
+.answer-input span{padding-right:12px;color:var(--muted);font-size:.82rem;white-space:nowrap}
+.feedback{display:none;margin-top:10px;padding:10px 12px;border-radius:10px;font-size:.84rem;font-weight:750}
+.feedback.show{display:block;animation:feedbackIn .35s ease both}
+.feedback.ok{background:color-mix(in srgb,var(--success) 15%,var(--panel));border:1px solid var(--success)}
+.feedback.try{background:color-mix(in srgb,var(--warning) 15%,var(--panel));border:1px solid var(--warning)}
+@keyframes feedbackIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.btn,.icon-btn,.tab-btn,.mount-option label{position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+.btn:hover,.icon-btn:hover,.tab-btn:hover,.mount-option label:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.14);filter:brightness(1.03)}
+.btn:active,.icon-btn:active,.tab-btn:active,.mount-option label:active{transform:scale(.96)}
+.btn::after,.icon-btn::after,.tab-btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.38) 48%,transparent 72%);transform:translateX(-130%);transition:transform .55s ease;pointer-events:none}
+.btn:hover::after,.icon-btn:hover::after,.tab-btn:hover::after{transform:translateX(130%)}
+@media (prefers-reduced-motion:reduce){.btn,.icon-btn,.tab-btn,.mount-option label,.feedback{animation:none!important;transition:none!important}}
+@media (min-width:1101px){
+  .sim-layout{align-items:stretch}
+  .controls,.stage-card{height:100%}
+  .stage-card{min-height:100%}
+  .stage-wrap{flex:1}
+}
+@media (max-width:1100px){
+  .sim-layout{grid-template-columns:1fr}
+  .controls{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .controls h3,.control-buttons{grid-column:1/-1}
+  .graphs{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .dials-row{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .app{width:min(100% - 14px,1480px)}
+  header{align-items:flex-start;flex-wrap:wrap}
+  .header-right{width:100%;justify-content:flex-end}
+  .lab-menu{min-width:0;flex:1}
+  .theory-content,.eq-grid,.controls{grid-template-columns:1fr}
+  .readouts{grid-template-columns:repeat(2,1fr)}
+  .readout.time{grid-column:1/-1}
+  .stage-wrap{height:390px;min-height:390px;flex:none}
+  .logo{min-width:82px}
+}
+</style>
+</head>
+<body class="dark">
+<div class="app">
+  <header><img src="LOGO UPN.png" width="175" height="95" alt=""/>
+    <div>
+      <div class="kicker">Dinámica de un móvil</div>
+      <h1>Análisis Dinámico de un Móvil</h1>
+      <p class="subtitle">Simulación con y sin rozamiento de un carro conectado por una cuerda ideal y una masa suspendida.</p>
+    </div>
+    <div class="header-right">
+      <select class="lab-menu" id="labMenu" aria-label="Acceder a otro laboratorio">
+        <option value="" selected>Laboratorios SIM 1–7</option>
+        <option value="Sim 1 Análisis Dinemático del Móvil.html">SIM 1 · Análisis Dinámico</option>
+        <option value="Sim 2  Zona de Impacto.html">SIM 2 · Zona de Impacto</option>
+        <option value="Sim 3  Equilibrio con cables.html">SIM 3 · Equilibrio con cables</option>
+        <option value="Sim 4 Fuerza centrípeta en acción.html">SIM 4 · Fuerza centrípeta</option>
+        <option value="Sim 5 Elevador de Carga.html">SIM 5 · Elevador de Carga</option>
+        <option value="Sim 6  Sistema de Amortiguación.html">SIM 6 · Sistema de Amortiguación</option>
+        <option value="Sim 7  Plataforma de Clasificación.html">SIM 7 · Plataforma de Clasificación</option>
+      </select>
+      <button class="icon-btn" id="themeBtn" type="button" title="Cambiar modo claro u oscuro" aria-label="Cambiar modo claro u oscuro"><img src="Vista.png" width="25" height="25" alt=""/></button>
+      <a class="icon-btn" href="index.html" title="Ir a la página de inicio" aria-label="Ir a la página de inicio"><img src="Home.png" width="30" height="30" alt=""/></a>
+</div>
+  </header>
+
+  <section class="card objective-card" aria-labelledby="objectiveTitle">
+    <div class="objective-icon" aria-hidden="true">◎</div>
+    <div><h2 id="objectiveTitle">Objetivo de aprendizaje</h2><p>Determinar la aceleración de un sistema carro–masa suspendida mediante la segunda ley de Newton y comprobar el resultado con la simulación, considerando el ángulo de la rampa y el rozamiento.</p></div>
+  </section>
+
+  <section class="card section">
+    <div class="section-head">
+      <span class="badge">01</span>
+      <div><h2>Teoría y ecuaciones básicas</h2><p>Modelo con cuerda y polea ideales y rozamiento ajustable entre el carro y la rampa.</p></div>
+    </div>
+    <div class="theory-content">
+      <div class="mini-card">
+        <h3>Interpretación física</h3>
+        <p>El carro tiende a moverse hacia la parte baja de la rampa. La masa suspendida desciende la misma distancia que recorre el carro. El rozamiento se opone al movimiento y puede reducir la aceleración o impedir el desplazamiento si es suficientemente grande.</p>
+      </div>
+      <div class="eq-grid">
+        <div class="eq">
+          <math display="block" aria-label="x igual a x sub cero más v sub cero por t más un medio de a por t al cuadrado">
+            <mi>x</mi><mo>=</mo><msub><mi>x</mi><mn>0</mn></msub><mo>+</mo>
+            <msub><mi>v</mi><mn>0</mn></msub><mi>t</mi><mo>+</mo>
+            <mfrac><mn>1</mn><mn>2</mn></mfrac><mi>a</mi><msup><mi>t</mi><mn>2</mn></msup>
+          </math>
+        </div>
+
+        <div class="eq">
+          <math display="block" aria-label="v igual a v sub cero más a por t">
+            <mi>v</mi><mo>=</mo><msub><mi>v</mi><mn>0</mn></msub><mo>+</mo><mi>a</mi><mi>t</mi>
+          </math>
+        </div>
+
+        <div class="eq">
+          <div>
+            <div style="font:700 .75rem system-ui;margin-bottom:5px;color:var(--muted)">Polea abajo</div>
+            <math display="block" aria-label="aceleración con polea abajo">
+              <mi>a</mi><mo>=</mo><mi>g</mi>
+              <mfrac>
+                <mrow><msub><mi>m</mi><mi>h</mi></msub><mo>+</mo><msub><mi>m</mi><mi>c</mi></msub><mo>(</mo><mi>sin</mi><mo>&#x2061;</mo><mi>θ</mi><mo>−</mo><mi>μ</mi><mi>cos</mi><mo>&#x2061;</mo><mi>θ</mi><mo>)</mo></mrow>
+                <mrow><msub><mi>m</mi><mi>h</mi></msub><mo>+</mo><msub><mi>m</mi><mi>c</mi></msub></mrow>
+              </mfrac>
+            </math>
+          </div>
+        </div>
+        <div class="eq">
+          <div>
+            <div style="font:700 .75rem system-ui;margin-bottom:5px;color:var(--muted)">Polea arriba</div>
+            <math display="block" aria-label="aceleración con polea arriba">
+              <mi>a</mi><mo>=</mo><mi>g</mi>
+              <mfrac>
+                <mrow><msub><mi>m</mi><mi>h</mi></msub><mo>−</mo><msub><mi>m</mi><mi>c</mi></msub><mo>(</mo><mi>sin</mi><mo>&#x2061;</mo><mi>θ</mi><mo>+</mo><mi>μ</mi><mi>cos</mi><mo>&#x2061;</mo><mi>θ</mi><mo>)</mo></mrow>
+                <mrow><msub><mi>m</mi><mi>h</mi></msub><mo>+</mo><msub><mi>m</mi><mi>c</mi></msub></mrow>
+              </mfrac>
+            </math>
+          </div>
+        </div>
+
+        <div class="eq">
+          <math display="block" aria-label="tensión igual a masa colgante por g menos a">
+            <mi>T</mi><mo>=</mo>
+            <msub><mi>m</mi><mi>h</mi></msub>
+            <mo>(</mo><mi>g</mi><mo>−</mo><mi>a</mi><mo>)</mo>
+          </math>
+        </div>
+
+        <div class="eq">
+          <math display="block" aria-label="fuerza de rozamiento">
+            <msub><mi>f</mi><mi>r</mi></msub><mo>=</mo><mi>μ</mi><mi>N</mi>
+            <mo>=</mo><mi>μ</mi><msub><mi>m</mi><mi>c</mi></msub><mi>g</mi>
+            <mi>cos</mi><mo>&#x2061;</mo><mi>θ</mi>
+          </math>
+        </div>
+
+        <div class="eq">
+          <math display="block" aria-label="v al cuadrado igual a v sub cero al cuadrado más dos a delta x">
+            <msup><mi>v</mi><mn>2</mn></msup><mo>=</mo>
+            <msup><msub><mi>v</mi><mn>0</mn></msub><mn>2</mn></msup>
+            <mo>+</mo><mn>2</mn><mi>a</mi><mi>Δx</mi>
+          </math>
+        </div>
+      </div>
+    </div>
+    <p class="notice">La posición de la polea puede cambiarse. Con la polea abajo, la tensión favorece el movimiento del carro hacia abajo de la rampa. Con la polea arriba, la masa suspendida debe vencer la componente del peso del carro y el rozamiento para arrastrarlo hacia arriba.</p>
+  </section>
+
+  <section class="card section">
+    <div class="section-head">
+      <span class="badge">02</span>
+      <div><h2>Simulación</h2><p>Modifica los parámetros antes de iniciar. La simulación se detiene al alcanzar la distancia de recorrido.</p></div>
+    </div>
+    <div class="sim-layout">
+      <aside class="card controls">
+        <h3>Parámetros</h3>
+
+        <div class="control">
+          <div class="single-value-row">
+            <label for="cartMassManual">Masa del carro</label>
+            <div class="single-value-box">
+              <input id="cartMassManual" type="number" min="0" max="5000" step="10" value="500">
+              <span class="unit">g</span>
+            </div>
+          </div>
+          <input id="cartMass" type="range" min="0" max="5000" step="10" value="500">
+          <div class="helper">Rango: 0–5000 g</div>
+        </div>
+        <div class="control">
+          <div class="single-value-row">
+            <label for="hangMassManual">Masa suspendida</label>
+            <div class="single-value-box">
+              <input id="hangMassManual" type="number" min="0" max="2000" step="10" value="100">
+              <span class="unit">g</span>
+            </div>
+          </div>
+          <input id="hangMass" type="range" min="0" max="2000" step="10" value="100">
+          <div class="helper">Rango: 0–2000 g</div>
+        </div>
+        <div class="mount-selector">
+          <div class="mount-selector-title">Posición de la polea</div>
+          <div class="mount-options">
+            <div class="mount-option">
+              <input type="radio" name="mountMode" id="pullDown" value="down" checked>
+              <label for="pullDown">Opción 1 · Jala hacia abajo</label>
+            </div>
+            <div class="mount-option">
+              <input type="radio" name="mountMode" id="pullUp" value="up">
+              <label for="pullUp">Opción 2 · Jala hacia arriba</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="dials-row">
+          <div class="control dial-control">
+            <div class="dial-wrap">
+              <div class="dial" id="angleDial" role="slider" tabindex="0"
+                   aria-label="Ángulo de la rampa" aria-valuemin="0" aria-valuemax="30" aria-valuenow="10"></div>
+              <div class="dial-scale">
+                <div class="dial-title">Ángulo de la rampa</div>
+                <div class="dial-manual">
+                  <input id="angleManual" type="number" min="0" max="30" step="1" value="10">
+                  <span class="unit">°</span>
+                </div>
+                <div class="dial-minmax"><span>0°–30°</span></div>
+              </div>
+            </div>
+            <input class="dial-input" id="angle" type="number" min="0" max="30" step="1" value="10">
+          </div>
+
+          <div class="control dial-control">
+            <div class="dial-wrap">
+              <div class="dial" id="frictionDial" role="slider" tabindex="0"
+                   aria-label="Coeficiente de rozamiento" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"></div>
+              <div class="dial-scale">
+                <div class="dial-title">Coeficiente de rozamiento <i>μ</i></div>
+                <div class="dial-manual">
+                  <input id="frictionManual" type="number" min="0" max="1" step="0.01" value="0.00">
+                </div>
+                <div class="dial-minmax"><span>0–1</span></div>
+              </div>
+            </div>
+            <input class="dial-input" id="friction" type="number" min="0.00" max="1.00" step="0.01" value="0.00">
+          </div>
+        </div>
+
+        <div class="control">
+          <div class="single-value-row">
+            <label for="distanceManual">Distancia recorrida</label>
+            <div class="single-value-box">
+              <input id="distanceManual" type="number" min="0.00" max="20.00" step="0.10" value="2.00">
+              <span class="unit">m</span>
+            </div>
+          </div>
+          <input id="distance" type="range" min="0.00" max="20.00" step="0.10" value="2.00">
+          <div class="helper">Rango: 0,00–20,00 m</div>
+        </div>
+        <div class="control">
+          <div class="single-value-row">
+            <label for="gravity">Gravedad</label>
+            <div class="single-value-box">
+              <input id="gravity" type="number" min="1.00" max="20.00" step="0.01" value="9.81" inputmode="decimal">
+              <span class="unit">m/s²</span>
+            </div>
+          </div>
+          <input id="gravitySlider" type="range" min="1.00" max="20.00" step="0.01" value="9.81">
+          <div class="helper">Rango: 1,00–20,00 m/s²</div>
+        </div>
+        <div class="control-buttons">
+          <button class="btn btn-primary btn-wide" id="startBtn">▶ Iniciar</button>
+          <button class="btn btn-secondary" id="pauseBtn">Ⅱ Pausar</button>
+          <button class="btn btn-danger" id="resetBtn">↻ Restablecer</button>
+        </div>
+        <div class="challenge">
+          <h3>Comprueba tu cálculo</h3>
+          <p>Calcula la magnitud de la aceleración con los parámetros seleccionados e ingresa tu resultado.</p>
+          <div class="answer-row">
+            <label class="answer-input" for="studentAcceleration"><input id="studentAcceleration" type="number" min="0" step="0.001" inputmode="decimal" placeholder="Ej.: 2.145" aria-label="Aceleración calculada"><span>m/s²</span></label>
+            <button class="btn btn-primary" id="checkBtn">Verificar</button>
+          </div>
+          <div class="feedback" id="calcFeedback" role="status" aria-live="polite"></div>
+        </div>
+      </aside>
+
+      <div class="card stage-card">
+        <div class="stage-top">
+          <strong>Vista experimental</strong>
+          <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">Listo</span></div>
+        </div>
+        <div class="stage-wrap">
+          <canvas id="scene"></canvas>
+        </div>
+        <div class="readouts">
+          <div class="readout time"><span>Tiempo</span><strong id="timeRead">0.00 s</strong></div>
+          <div class="readout x"><span>Posición</span><strong id="xRead">0.000 m</strong></div>
+          <div class="readout v"><span>Velocidad</span><strong id="vRead">0.000 m/s</strong></div>
+          <div class="readout a"><span>Aceleración</span><strong id="aRead">0.000 m/s²</strong></div>
+          <div class="readout t"><span>Tensión</span><strong id="tRead">0.000 N</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="tabs-shell" aria-label="Resultados de la simulación">
+    <div class="tabs-bar" role="tablist" aria-label="Visualización de resultados">
+      <button class="tab-btn active" id="graphsTab" role="tab" aria-selected="true" aria-controls="graphsPanel">
+        Gráficas
+      </button>
+      <button class="tab-btn" id="dataTab" role="tab" aria-selected="false" aria-controls="dataPanel">
+        Datos
+      </button>
+    </div>
+
+    <div class="tab-panel active" id="graphsPanel" role="tabpanel" aria-labelledby="graphsTab">
+      <div class="section-head">
+        <span class="badge">03</span>
+        <div>
+          <h2>Gráficas en tiempo real</h2>
+          <p>Posición, velocidad y aceleración se registran durante la simulación.</p>
+        </div>
+      </div>
+      <div class="graphs">
+        <div class="card graph">
+          <h3 class="xc">Posición x(t)</h3>
+          <canvas class="chart" id="xChart"></canvas>
+          <small>Tiempo (s) vs posición (m)</small>
+        </div>
+        <div class="card graph">
+          <h3 class="vc">Velocidad v(t)</h3>
+          <canvas class="chart" id="vChart"></canvas>
+          <small>Tiempo (s) vs velocidad (m/s)</small>
+        </div>
+        <div class="card graph">
+          <h3 class="ac">Aceleración a(t)</h3>
+          <canvas class="chart" id="aChart"></canvas>
+          <small>Tiempo (s) vs aceleración (m/s²)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="dataPanel" role="tabpanel" aria-labelledby="dataTab">
+      <div class="data-head">
+        <div>
+          <h2>Datos experimentales</h2>
+          <div style="color:var(--muted);font-size:.84rem">
+            Registro: t (s), x (m), v (m/s), a (m/s²), T (N) · Muestreo según distancia
+          </div>
+        </div>
+        <button class="btn btn-primary" id="exportBtn">↓ Descargar CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>t (s)</th>
+              <th>x (m)</th>
+              <th>v (m/s)</th>
+              <th>a (m/s²)</th>
+              <th>T (N)</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr>
+              <td colspan="5" style="color:var(--muted);padding:28px">
+                Inicia la simulación para generar datos.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice" style="margin-top:12px">
+        Datos mostrados: ≤1 m → 10 datos · 1–3 m → 20 datos · 3–6 m → 30 datos · 6–10 m → 40 datos · 10–20 m → 50 datos.
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const cartMass = $('#cartMass'), hangMass = $('#hangMass'), angle = $('#angle'), distance = $('#distance'), friction = $('#friction'), gravity = $('#gravity');
+  const cartMassManual = $('#cartMassManual'), hangMassManual = $('#hangMassManual'),
+        angleManual = $('#angleManual'), frictionManual = $('#frictionManual'),
+        distanceManual = $('#distanceManual'), gravitySlider = $('#gravitySlider');
+  const startBtn = $('#startBtn'), pauseBtn = $('#pauseBtn'), resetBtn = $('#resetBtn'), exportBtn = $('#exportBtn'), themeBtn = $('#themeBtn'), labMenu = $('#labMenu');
+  const studentAcceleration = $('#studentAcceleration'), checkBtn = $('#checkBtn'), calcFeedback = $('#calcFeedback');
+  const xRead = $('#xRead'), vRead = $('#vRead'), aRead = $('#aRead'), tRead = $('#tRead'), timeRead = $('#timeRead');
+  const statusText = $('#statusText'), statusDot = $('#statusDot'), tbody = $('#tbody');
+  const graphsTab = $('#graphsTab'), dataTab = $('#dataTab'), graphsPanel = $('#graphsPanel'), dataPanel = $('#dataPanel');
+  const angleDial = $('#angleDial'), frictionDial = $('#frictionDial');
+  const pullDown = $('#pullDown'), pullUp = $('#pullUp');
+  const scene = $('#scene'), sctx = scene.getContext('2d');
+  const xChart = $('#xChart'), vChart = $('#vChart'), aChart = $('#aChart');
+
+  let running = false, paused = false, finished = false;
+  let simT = 0, simX = 0, simV = 0, simA = 0, simTension = 0;
+  let lastTs = null, accumulator = 0, lastSample = -1;
+  let nextSampleIndex = 0;
+  let data = [];
+
+
+  function setDialVisual(dialEl, value, min, max){
+    const ratio = (value-min)/(max-min);
+    const sweep = Math.max(0,Math.min(270,ratio*270));
+    dialEl.style.setProperty('--angle', `${sweep}deg`);
+    dialEl.setAttribute('aria-valuenow', String(value));
+  }
+
+  function bindDial(dialEl,inputEl,min,max,step){
+    const decimals = String(step).includes('.') ? String(step).split('.')[1].length : 0;
+    const clamp=v=>Math.max(min,Math.min(max,v));
+    const snap=v=>Math.round(v/step)*step;
+
+    function setValue(v){
+      v=clamp(snap(v));
+      inputEl.value=v.toFixed(decimals);
+      setDialVisual(dialEl,v,min,max);
+      inputEl.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+
+    function valueFromPointer(clientX,clientY){
+      const r=dialEl.getBoundingClientRect();
+      const cx=r.left+r.width/2, cy=r.top+r.height/2;
+      let pointerDeg=Math.atan2(clientY-cy,clientX-cx)*180/Math.PI;
+      let sweep=pointerDeg-(-135);
+      while(sweep<0)sweep+=360;
+      while(sweep>=360)sweep-=360;
+
+      // El dial usa solamente 270°. La zona inferior de 90° queda como zona muerta.
+      if(sweep>270){
+        const dToMin=360-sweep;
+        const dToMax=sweep-270;
+        sweep=dToMin<dToMax?0:270;
+      }
+      return min+(sweep/270)*(max-min);
+    }
+
+    let dragging=false;
+    dialEl.addEventListener('pointerdown',e=>{
+      if(inputEl.disabled)return;
+      dragging=true;
+      dialEl.setPointerCapture(e.pointerId);
+      setValue(valueFromPointer(e.clientX,e.clientY));
+    });
+    dialEl.addEventListener('pointermove',e=>{
+      if(!dragging||inputEl.disabled)return;
+      setValue(valueFromPointer(e.clientX,e.clientY));
+    });
+    dialEl.addEventListener('pointerup',()=>dragging=false);
+    dialEl.addEventListener('pointercancel',()=>dragging=false);
+
+    dialEl.addEventListener('keydown',e=>{
+      if(inputEl.disabled)return;
+      const v=Number(inputEl.value);
+      if(e.key==='ArrowRight'||e.key==='ArrowUp'){setValue(v+step);e.preventDefault()}
+      if(e.key==='ArrowLeft'||e.key==='ArrowDown'){setValue(v-step);e.preventDefault()}
+      if(e.key==='Home'){setValue(min);e.preventDefault()}
+      if(e.key==='End'){setValue(max);e.preventDefault()}
+    });
+
+    setDialVisual(dialEl,Number(inputEl.value),min,max);
+  }
+
+  function params(){
+    return {
+      mc: Number(cartMass.value)/1000,
+      mh: Number(hangMass.value)/1000,
+      theta: Number(angle.value)*Math.PI/180,
+      deg: Number(angle.value),
+      L: Number(distance.value),
+      mu: Number(friction.value),
+      g: Number(gravity.value),
+      mode: pullUp.checked ? 'up' : 'down'
+    };
+  }
+
+  function targetSampleCount(){
+    const L = Number(distance.value);
+
+    if (L <= 1) return 10;
+    if (L <= 3) return 20;
+    if (L <= 6) return 30;
+    if (L <= 10) return 40;
+    return 50;
+  }
+
+  function theoreticalEndTime(){
+    physics();
+    const L = Number(distance.value);
+    if (simA <= 0 || L <= 0) return 0;
+    return Math.sqrt((2 * L) / simA);
+  }
+
+  function sampleStateAtTime(t){
+    physics();
+    const L = Number(distance.value);
+
+    const x = Math.min(0.5 * simA * t * t, L);
+    const v = simA * t;
+
+    return {
+      t,
+      x,
+      v,
+      a: simA,
+      T: simTension
+    };
+  }
+
+  function rebuildDisplayedData(finalOnly=false){
+    const count = targetSampleCount();
+    const tEnd = theoreticalEndTime();
+
+    if (count <= 0 || tEnd <= 0) {
+      data = [{
+        t: 0,
+        x: 0,
+        v: 0,
+        a: simA,
+        T: simTension
+      }];
+      renderTable();
+      return;
+    }
+
+    const limitTime = finalOnly ? tEnd : Math.min(simT, tEnd);
+    const rows = [];
+
+    for (let i = 0; i < count; i++) {
+      const targetT = (tEnd * i) / (count - 1);
+
+      if (targetT <= limitTime + 1e-9) {
+        rows.push(sampleStateAtTime(targetT));
+      } else {
+        break;
+      }
+    }
+
+    // Mientras corre, agrega el estado actual como último dato temporal
+    // solo si aún no se llegó al final y no coincide con un punto programado.
+    if (!finalOnly && running && simT < tEnd && rows.length) {
+      const last = rows[rows.length - 1];
+      if (Math.abs(last.t - simT) > 1e-3) {
+        rows.push(sampleStateAtTime(simT));
+      }
+    }
+
+    data = rows;
+    renderTable();
+  }
+
+  function physics(){
+    const p = params();
+
+    if (p.mc + p.mh <= 0) {
+      simA = 0;
+      simTension = 0;
+      return;
+    }
+
+    const normal = p.mc * p.g * Math.cos(p.theta);
+    const frictionForce = p.mu * normal;
+
+    if (p.mode === 'down') {
+      // Carro hacia abajo del plano; la masa suspendida también desciende.
+      const drive = p.mh * p.g + p.mc * p.g * Math.sin(p.theta);
+
+      if (drive <= frictionForce + 1e-12) {
+        simA = 0;
+        simTension = p.mh * p.g;
+        return;
+      }
+
+      simA = (drive - frictionForce) / (p.mh + p.mc);
+      simTension = p.mh * (p.g - simA);
+
+    } else {
+      // Carro hacia arriba del plano; la masa suspendida desciende.
+      const driveUp = p.mh * p.g - p.mc * p.g * Math.sin(p.theta);
+
+      if (driveUp <= frictionForce + 1e-12) {
+        simA = 0;
+        simTension = p.mh * p.g;
+        return;
+      }
+
+      simA = (driveUp - frictionForce) / (p.mh + p.mc);
+      simTension = p.mh * (p.g - simA);
+    }
+
+    if (!isFinite(simA) || simA < 0) simA = 0;
+    if (!isFinite(simTension)) simTension = 0;
+  }
+
+  function updateLabels(){
+
+    cartMassManual.value = cartMass.value;
+    hangMassManual.value = hangMass.value;
+    angleManual.value = angle.value;
+    frictionManual.value = Number(friction.value).toFixed(2);
+    distanceManual.value = Number(distance.value).toFixed(2);
+    gravitySlider.value = gravity.value;
+    calcFeedback.className = 'feedback';
+    calcFeedback.textContent = '';
+
+    setDialVisual(angleDial, Number(angle.value), 0, 30);
+    setDialVisual(frictionDial, Number(friction.value), 0, 1);
+    physics();
+    updateReadouts();
+    drawAll();
+  }
+
+
+
+  function clampNumber(v,min,max){
+    v = Number(v);
+    if(!isFinite(v)) return min;
+    return Math.max(min,Math.min(max,v));
+  }
+
+  function syncManual(manualEl, controlEl, min, max, step){
+    manualEl.addEventListener('input', ()=>{
+      if(running || paused) return;
+      let v = clampNumber(manualEl.value,min,max);
+      v = Math.round(v/step)*step;
+      controlEl.value = v;
+      controlEl.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+  }
+
+  syncManual(cartMassManual, cartMass, 0, 5000, 10);
+  syncManual(hangMassManual, hangMass, 0, 2000, 10);
+  syncManual(angleManual, angle, 0, 30, 1);
+  syncManual(frictionManual, friction, 0, 1, 0.01);
+  syncManual(distanceManual, distance, 0.00, 20.00, 0.10);
+
+  gravitySlider.addEventListener('input', ()=>{
+    if(running || paused) return;
+    gravity.value = Number(gravitySlider.value).toFixed(2);
+    gravity.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+
+
+  [pullDown,pullUp].forEach(el => el.addEventListener('change', () => {
+    if (running || paused) return;
+    reset();
+    updateLabels();
+  }));
+
+  [cartMass,hangMass,angle,distance,friction,gravity,gravitySlider].forEach(el => el.addEventListener('input', () => {
+    if (running || paused) return;
+    updateLabels();
+  }));
+
+  function lockControls(lock){
+    [cartMass,hangMass,angle,distance,friction,gravity,gravitySlider,
+      cartMassManual,hangMassManual,angleManual,frictionManual,distanceManual,pullDown,pullUp].forEach(el => el.disabled = lock);
+    [angleDial,frictionDial].forEach(d=>{
+      d.style.opacity=lock?'0.55':'1';
+      d.style.cursor=lock?'not-allowed':'grab';
+      d.setAttribute('aria-disabled',lock?'true':'false');
+    });
+  }
+
+  function setStatus(text, type='ok'){
+    statusText.textContent = text;
+    const colors = {ok:'var(--success)', warn:'var(--warning)', err:'var(--error)'};
+    statusDot.style.background = colors[type] || colors.ok;
+  }
+
+  function checkCalculation(){
+    const raw = String(studentAcceleration.value).replace(',', '.');
+    const entered = Number(raw);
+    physics();
+    calcFeedback.className = 'feedback show';
+    if (!raw.trim() || !isFinite(entered) || entered < 0){
+      calcFeedback.classList.add('try');
+      calcFeedback.textContent = 'Ingresa una aceleración válida, igual o mayor que cero.';
+      return;
+    }
+    const absoluteError = Math.abs(entered - simA);
+    const relativeError = simA > 1e-12 ? absoluteError / simA * 100 : (absoluteError < 0.001 ? 0 : 100);
+    if (absoluteError <= Math.max(0.01, simA * 0.02)){
+      calcFeedback.classList.add('ok');
+      calcFeedback.textContent = `¡Cálculo correcto! Simulador: ${simA.toFixed(3)} m/s² · Error: ${relativeError.toFixed(2)} %.`;
+    } else {
+      calcFeedback.classList.add('try');
+      calcFeedback.textContent = `Revisa el sentido de las fuerzas y las masas en kg. Tu error es ${relativeError.toFixed(2)} %. Inténtalo nuevamente.`;
+    }
+  }
+
+  function start(){
+    if (finished) reset();
+
+    physics();
+
+    if (simA <= 1e-12) {
+      running = false;
+      paused = false;
+      lockControls(false);
+      setStatus(params().mode === 'up'
+        ? 'Sin movimiento: la masa suspendida no vence al peso del carro y al rozamiento'
+        : 'Sin movimiento: el rozamiento equilibra al sistema','warn');
+      updateReadouts();
+      if (data.length === 0) rebuildDisplayedData(false);
+      drawAll();
+      return;
+    }
+
+    if (!running){
+      running = true; paused = false; lastTs = null; accumulator = 0; lockControls(true);
+      startBtn.textContent = '▶ En marcha';
+      setStatus('Simulando','ok');
+      if (data.length === 0) rebuildDisplayedData(false);
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function pause(){
+    if (!running && !paused) return;
+    if (running){
+      running = false; paused = true; lastTs = null;
+      startBtn.textContent = '▶ Continuar';
+      setStatus('Pausado','warn');
+    } else if (paused){
+      start();
+    }
+  }
+
+  function reset(){
+    running=false; paused=false; finished=false; simT=0; simX=0; simV=0; lastTs=null; accumulator=0; lastSample=-1; nextSampleIndex=0; data=[];
+    calcFeedback.className='feedback'; calcFeedback.textContent='';
+    lockControls(false); startBtn.textContent='▶ Iniciar'; setStatus('Listo','ok'); physics(); updateReadouts(); renderTable(); drawAll();
+  }
+
+  function finish(){
+    running=false; paused=false; finished=true; simX=params().L;
+    simT = simA > 0 ? Math.sqrt(2*simX/simA) : 0;
+    simV = simA * simT;
+    lockControls(false); startBtn.textContent='▶ Reiniciar';
+    setStatus('Recorrido completado','ok');
+    rebuildDisplayedData(true);
+    updateReadouts();
+    drawAll();
+  }
+
+  startBtn.addEventListener('click', start);
+  pauseBtn.addEventListener('click', pause);
+  resetBtn.addEventListener('click', reset);
+  checkBtn.addEventListener('click', checkCalculation);
+  studentAcceleration.addEventListener('keydown', e => { if(e.key === 'Enter') checkCalculation(); });
+
+  function loop(ts){
+    if (!running) return;
+    if (lastTs == null) lastTs = ts;
+    let realDt = Math.min((ts-lastTs)/1000, 0.05);
+    lastTs = ts;
+    accumulator += realDt;
+
+    const step = 1/120;
+    while(accumulator >= step){
+      simT += step;
+      physics();
+      simX = 0.5 * simA * simT * simT;
+      simV = simA * simT;
+      accumulator -= step;
+      if (simX >= params().L){ finish(); return; }
+    }
+    rebuildDisplayedData(false);
+    updateReadouts(); drawAll();
+    requestAnimationFrame(loop);
+  }
+
+  function updateReadouts(){
+    xRead.textContent = `${simX.toFixed(3)} m`;
+    vRead.textContent = `${simV.toFixed(3)} m/s`;
+    aRead.textContent = `${simA.toFixed(3)} m/s²`;
+    tRead.textContent = `${simTension.toFixed(3)} N`;
+    timeRead.textContent = `${simT.toFixed(2)} s`;
+  }
+
+  function addSample(force){
+    rebuildDisplayedData(Boolean(force && finished));
+  }
+
+  function renderTable(){
+    if (!data.length){
+      tbody.innerHTML='<tr><td colspan="5" style="color:var(--muted);padding:28px">Inicia la simulación para generar datos.</td></tr>';
+      return;
+    }
+    tbody.innerHTML=data.map(r=>`<tr><td>${r.t.toFixed(2)}</td><td>${r.x.toFixed(3)}</td><td>${r.v.toFixed(3)}</td><td>${r.a.toFixed(3)}</td><td>${r.T.toFixed(3)}</td></tr>`).join('');
+  }
+
+  exportBtn.addEventListener('click', ()=>{
+    if (!data.length){ alert('Primero ejecuta la simulación para generar datos.'); return; }
+    const sep=';';
+    const lines=[
+      ['t (s)','x (m)','v (m/s)','a (m/s²)','T (N)'].join(sep),
+      ...data.map(r=>[r.t.toFixed(3),r.x.toFixed(4),r.v.toFixed(4),r.a.toFixed(4),r.T.toFixed(4)].join(sep))
+    ];
+    const blob=new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='datos_simulacion_cinematica.csv'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+
+  function activateTab(tabName){
+    const showGraphs = tabName === 'graphs';
+
+    graphsTab.classList.toggle('active', showGraphs);
+    dataTab.classList.toggle('active', !showGraphs);
+    graphsPanel.classList.toggle('active', showGraphs);
+    dataPanel.classList.toggle('active', !showGraphs);
+
+    graphsTab.setAttribute('aria-selected', showGraphs ? 'true' : 'false');
+    dataTab.setAttribute('aria-selected', showGraphs ? 'false' : 'true');
+
+    // Recalcula los canvas cuando la pestaña de gráficas vuelve a mostrarse.
+    if (showGraphs) {
+      requestAnimationFrame(drawAll);
+    }
+  }
+
+  graphsTab.addEventListener('click', () => activateTab('graphs'));
+  dataTab.addEventListener('click', () => activateTab('data'));
+
+  themeBtn.addEventListener('click', ()=>{
+    document.body.classList.toggle('dark');
+    drawAll();
+  });
+
+  labMenu.addEventListener('change', ()=>{
+    if(labMenu.value) window.location.href = labMenu.value;
+  });
+
+  function fitCanvas(canvas){
+    const dpr=window.devicePixelRatio||1;
+    const rect=canvas.getBoundingClientRect();
+    const w=Math.max(1,Math.round(rect.width*dpr)), h=Math.max(1,Math.round(rect.height*dpr));
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
+    const ctx=canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,w:rect.width,h:rect.height};
+  }
+
+  function css(name){return getComputedStyle(document.body).getPropertyValue(name).trim()}
+
+  function drawScene(){
+    const {ctx,w,h}=fitCanvas(scene);
+    ctx.clearRect(0,0,w,h);
+
+    const p=params(), th=p.theta;
+    const lower={x:w*0.78,y:h*0.73};
+    const planePx=Math.min(w*0.62,h*0.58/Math.max(Math.sin(th),0.35));
+    const upper={x:lower.x-planePx*Math.cos(th),y:lower.y-planePx*Math.sin(th)};
+
+    ctx.strokeStyle=css('--border'); ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(25,lower.y+42);ctx.lineTo(w-25,lower.y+42);ctx.stroke();
+
+    ctx.strokeStyle=css('--text'); ctx.lineWidth=8; ctx.lineCap='round';
+    ctx.beginPath();ctx.moveTo(upper.x,upper.y);ctx.lineTo(lower.x,lower.y);ctx.stroke();
+
+    ctx.strokeStyle=css('--yellow');ctx.lineWidth=3;
+    const ar=46;
+    ctx.beginPath();ctx.arc(lower.x,lower.y,ar,Math.PI,Math.PI+th,false);ctx.stroke();
+    ctx.fillStyle=css('--text');ctx.font='700 13px system-ui';
+    ctx.fillText(`${p.deg}°`,lower.x-ar-2,lower.y-10);
+
+    const tickCount=4;
+    ctx.font='700 11px system-ui';ctx.fillStyle=css('--muted');ctx.strokeStyle=css('--muted');ctx.lineWidth=1;
+    for(let i=0;i<=tickCount;i++){
+      const q=i/tickCount;
+      const tx=upper.x+(lower.x-upper.x)*q, ty=upper.y+(lower.y-upper.y)*q;
+      const nx=-Math.sin(th), ny=Math.cos(th);
+      ctx.beginPath();ctx.moveTo(tx+nx*6,ty+ny*6);ctx.lineTo(tx+nx*14,ty+ny*14);ctx.stroke();
+      ctx.fillText(`${(p.L*q).toFixed(1)} m`,tx+nx*22-12,ty+ny*22+4);
+    }
+
+    // Polea en el extremo inferior o superior.
+    const basePulley = p.mode === 'down' ? lower : upper;
+    const tangentSign = p.mode === 'down' ? 1 : -1;
+    const pc={
+      x:basePulley.x+tangentSign*16*Math.cos(th),
+      y:basePulley.y+tangentSign*16*Math.sin(th)
+    };
+    const pr=22;
+    ctx.fillStyle=css('--control');ctx.strokeStyle=css('--yellow');ctx.lineWidth=4;
+    ctx.beginPath();ctx.arc(pc.x,pc.y,pr,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.fillStyle=css('--text');ctx.beginPath();ctx.arc(pc.x,pc.y,4,0,Math.PI*2);ctx.fill();
+
+    // simX = distancia recorrida desde el punto inicial.
+    const progress=p.L>0?Math.min(simX/p.L,1):0;
+    const inset=0.10;
+    const travelF=p.mode==='down'
+      ? inset+(1-2*inset)*progress
+      : (1-inset)-(1-2*inset)*progress;
+
+    const cx=upper.x+(lower.x-upper.x)*travelF;
+    const cy=upper.y+(lower.y-upper.y)*travelF;
+    const n={x:-Math.sin(th),y:Math.cos(th)};
+    const cartCenter={x:cx+n.x*(-22),y:cy+n.y*(-22)};
+    const cw=64,ch=34;
+
+    // ============================================================
+    // CUERDA: paralela al plano, siempre por ENCIMA de la rampa
+    // y tangente exactamente a la polea.
+    // ============================================================
+    const ux = Math.cos(th);
+    const uy = Math.sin(th);
+
+    // Normal "hacia arriba" respecto a la superficie del plano.
+    // Para una rampa que asciende hacia la izquierda, esta normal
+    // apunta visualmente fuera de la superficie.
+    const nx = Math.sin(th);
+    const ny = -Math.cos(th);
+
+    // Separación visual entre la cuerda y la superficie de la rampa.
+    // Debe ser suficiente para que la cuerda nunca se confunda con el borde.
+    const ropeOffset = 18;
+
+    // Línea ideal de la cuerda: misma dirección del plano, pero desplazada
+    // ropeOffset píxeles por encima de la rampa.
+    const offsetUpper = {
+      x: upper.x + nx * ropeOffset,
+      y: upper.y + ny * ropeOffset
+    };
+    const offsetLower = {
+      x: lower.x + nx * ropeOffset,
+      y: lower.y + ny * ropeOffset
+    };
+
+    // La polea se coloca de modo que el punto de tangencia de la cuerda
+    // inclinada coincida exactamente con esa línea paralela desplazada.
+    // Por tanto, el punto tangente está sobre el borde superior de la polea
+    // respecto a la normal del plano.
+    const inclinedTangent = {
+      x: pc.x + nx * pr,
+      y: pc.y + ny * pr
+    };
+
+    // Punto de conexión en el carro:
+    // proyectamos el centro del carro sobre la línea paralela desplazada.
+    const ref = p.mode === 'down' ? offsetUpper : offsetLower;
+    const cartProj =
+      (cartCenter.x - ref.x) * ux +
+      (cartCenter.y - ref.y) * uy;
+
+    const ropeStartAligned = {
+      x: ref.x + cartProj * ux,
+      y: ref.y + cartProj * uy
+    };
+
+    // Ajustamos el extremo en el carro para que visualmente salga desde
+    // el borde del carro en dirección a la polea, pero SIN perder paralelismo.
+    const alongSign = p.mode === 'down' ? 1 : -1;
+    const ropeStart = {
+      x: ropeStartAligned.x + alongSign * ux * (cw * 0.35),
+      y: ropeStartAligned.y + alongSign * uy * (cw * 0.35)
+    };
+
+    // Punto exacto de tangencia vertical.
+    const verticalSide = p.mode === 'down' ? 1 : -1;
+    const verticalTangent = {
+      x: pc.x + verticalSide * pr,
+      y: pc.y
+    };
+
+    // Tramo inclinado: SIEMPRE paralelo al plano y SIEMPRE por encima.
+    ctx.strokeStyle = css('--yellow');
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ropeStart.x, ropeStart.y);
+    ctx.lineTo(inclinedTangent.x, inclinedTangent.y);
+    ctx.stroke();
+
+    // Arco de contacto con la polea.
+    const a1 = Math.atan2(inclinedTangent.y - pc.y, inclinedTangent.x - pc.x);
+    const a2 = Math.atan2(verticalTangent.y - pc.y, verticalTangent.x - pc.x);
+    const anticlockwise = p.mode === 'up';
+
+    ctx.beginPath();
+    ctx.arc(pc.x, pc.y, pr, a1, a2, anticlockwise);
+    ctx.stroke();
+
+    // Tramo vertical: parte exactamente del borde tangente de la polea.
+    const ropeX = verticalTangent.x;
+    const availableDrop = Math.max(30, h - verticalTangent.y - 75);
+    const hangDrop = Math.min(
+      60 + progress * Math.min(120, availableDrop),
+      availableDrop
+    );
+
+    ctx.beginPath();
+    ctx.moveTo(verticalTangent.x, verticalTangent.y);
+    ctx.lineTo(ropeX, verticalTangent.y + hangDrop);
+    ctx.stroke();
+
+    const mw = 48, mh = 42;
+    const my = verticalTangent.y + hangDrop;
+
+    ctx.fillStyle=css('--violet2');
+    ctx.strokeStyle=css('--text');
+    ctx.lineWidth=2;
+    ctx.fillRect(ropeX-mw/2,my,mw,mh);
+    ctx.strokeRect(ropeX-mw/2,my,mw,mh);
+
+    // Carro.
+    ctx.save();ctx.translate(cartCenter.x,cartCenter.y);ctx.rotate(th);
+    ctx.fillStyle=css('--cyan');ctx.strokeStyle=css('--text');ctx.lineWidth=2;
+    ctx.fillRect(-cw/2,-ch/2,cw,ch);ctx.strokeRect(-cw/2,-ch/2,cw,ch);
+    ctx.fillStyle=css('--text');
+    for(const wx of [-20,20]){ctx.beginPath();ctx.arc(wx,ch/2+6,7,0,Math.PI*2);ctx.fill()}
+    ctx.restore();
+
+    ctx.fillStyle=css('--text');ctx.font='800 13px system-ui';
+    ctx.fillText(`Carro: ${cartMass.value} g`,Math.max(10,cartCenter.x-50),Math.max(20,cartCenter.y-38));
+    ctx.fillText(`Masa: ${hangMass.value} g`,Math.max(8,Math.min(w-105,ropeX-35)),Math.min(h-12,my+mh+18));
+
+    ctx.fillStyle=css('--muted');ctx.font='700 12px system-ui';
+    const direction=p.mode==='down'?'tracción hacia abajo':'tracción hacia arriba';
+    ctx.fillText(`Recorrido: ${p.L.toFixed(2)} m · μ=${p.mu.toFixed(2)} · g=${p.g.toFixed(2)} m/s² · ${direction}`,22,26);
+  }
+
+  function drawInfoBox(ctx,x,y,width,title,value,accent,align='left'){
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,.22)';ctx.shadowBlur=10;ctx.shadowOffsetY=4;
+    ctx.fillStyle=document.body.classList.contains('dark')?'rgba(22,22,22,.94)':'rgba(255,255,255,.95)';
+    ctx.strokeStyle=accent;ctx.lineWidth=2;
+    ctx.beginPath();ctx.roundRect(x,y,width,58,10);ctx.fill();ctx.stroke();
+    ctx.shadowColor='transparent';ctx.textAlign=align;const tx=align==='right'?x+width-12:x+12;
+    ctx.fillStyle=accent;ctx.font='900 13px system-ui';ctx.fillText(title,tx,y+21);
+    ctx.fillStyle=css('--text');ctx.font='800 16px system-ui';ctx.fillText(value,tx,y+44);
+    ctx.restore();
+  }
+
+  drawScene = function(){
+    const {ctx,w,h}=fitCanvas(scene),p=params(),th=p.theta,dark=document.body.classList.contains('dark');
+    const bg=ctx.createLinearGradient(0,0,0,h);bg.addColorStop(0,dark?'#171B20':'#F4F8FB');bg.addColorStop(.72,dark?'#0C0F12':'#E8EEF2');bg.addColorStop(1,dark?'#080A0C':'#C7D0D6');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle=dark?'rgba(255,255,255,.035)':'rgba(40,55,65,.05)';ctx.lineWidth=1;for(let gx=0;gx<w;gx+=32){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,h);ctx.stroke()}for(let gy=0;gy<h;gy+=32){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(w,gy);ctx.stroke()}
+    const lower={x:w*.76,y:h*.69},planePx=Math.min(w*.60,h*.42/Math.max(Math.sin(th),.35)),upper={x:lower.x-planePx*Math.cos(th),y:lower.y-planePx*Math.sin(th)},u={x:Math.cos(th),y:Math.sin(th)},n={x:Math.sin(th),y:-Math.cos(th)};
+    ctx.fillStyle=dark?'#1C2024':'#C9D1D6';ctx.fillRect(0,lower.y+48,w,h-lower.y-48);ctx.strokeStyle=dark?'#3B4248':'#A9B4BB';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,lower.y+48);ctx.lineTo(w,lower.y+48);ctx.stroke();
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.28)';ctx.shadowBlur=16;ctx.shadowOffsetY=9;ctx.strokeStyle='#303A41';ctx.lineWidth=26;ctx.lineCap='butt';ctx.beginPath();ctx.moveTo(upper.x,upper.y);ctx.lineTo(lower.x,lower.y);ctx.stroke();const rail=ctx.createLinearGradient(upper.x,upper.y,lower.x,lower.y);rail.addColorStop(0,'#EAF0F3');rail.addColorStop(.25,'#75838C');rail.addColorStop(.55,'#D7DEE2');rail.addColorStop(1,'#4A565E');ctx.strokeStyle=rail;ctx.lineWidth=20;ctx.beginPath();ctx.moveTo(upper.x,upper.y);ctx.lineTo(lower.x,lower.y);ctx.stroke();ctx.strokeStyle='rgba(255,255,255,.72)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(upper.x+n.x*5,upper.y+n.y*5);ctx.lineTo(lower.x+n.x*5,lower.y+n.y*5);ctx.stroke();ctx.restore();
+    const legTop=[.18,.52,.84];legTop.forEach(q=>{const px=upper.x+(lower.x-upper.x)*q,py=upper.y+(lower.y-upper.y)*q,footY=lower.y+48;ctx.strokeStyle='#4C5961';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(px,py+10);ctx.lineTo(px,footY);ctx.stroke();ctx.fillStyle='#66737C';ctx.fillRect(px-18,footY-5,36,7)});
+    ctx.strokeStyle='rgba(74,86,94,.72)';ctx.lineWidth=1;ctx.fillStyle=css('--muted');ctx.font='700 12px system-ui';for(let i=0;i<=4;i++){const q=i/4,tx=upper.x+(lower.x-upper.x)*q,ty=upper.y+(lower.y-upper.y)*q;ctx.beginPath();ctx.moveTo(tx+n.x*12,ty+n.y*12);ctx.lineTo(tx+n.x*21,ty+n.y*21);ctx.stroke();ctx.fillText(`${(p.L*q).toFixed(1)} m`,tx+n.x*28-12,ty+n.y*28+4)}
+    const basePulley=p.mode==='down'?lower:upper,tangentSign=p.mode==='down'?1:-1,pc={x:basePulley.x+tangentSign*18*u.x,y:basePulley.y+tangentSign*18*u.y},pr=24;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=10;ctx.shadowOffsetY=5;const pg=ctx.createRadialGradient(pc.x-8,pc.y-9,2,pc.x,pc.y,pr);pg.addColorStop(0,'#F7FAFB');pg.addColorStop(.38,'#AAB5BC');pg.addColorStop(.72,'#59666E');pg.addColorStop(1,'#232C32');ctx.fillStyle=pg;ctx.strokeStyle='#FDBA30';ctx.lineWidth=4;ctx.beginPath();ctx.arc(pc.x,pc.y,pr,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#263139';ctx.beginPath();ctx.arc(pc.x,pc.y,6,0,Math.PI*2);ctx.fill();ctx.restore();
+    const progress=p.L>0?Math.min(simX/p.L,1):0,inset=.10,travelF=p.mode==='down'?inset+(1-2*inset)*progress:(1-inset)-(1-2*inset)*progress,cx=upper.x+(lower.x-upper.x)*travelF,cy=upper.y+(lower.y-upper.y)*travelF,cartCenter={x:cx+n.x*45,y:cy+n.y*45},cw=70,ch=36,ropeOffset=pr,ref=p.mode==='down'?{x:upper.x+n.x*ropeOffset,y:upper.y+n.y*ropeOffset}:{x:lower.x+n.x*ropeOffset,y:lower.y+n.y*ropeOffset},proj=(cartCenter.x-ref.x)*u.x+(cartCenter.y-ref.y)*u.y,aligned={x:ref.x+proj*u.x,y:ref.y+proj*u.y},along=p.mode==='down'?1:-1,ropeStart={x:aligned.x+along*u.x*cw*.34,y:aligned.y+along*u.y*cw*.34},inclined={x:pc.x+n.x*pr,y:pc.y+n.y*pr},side=p.mode==='down'?1:-1,vertical={x:pc.x+side*pr,y:pc.y};
+    ctx.strokeStyle='rgba(0,0,0,.28)';ctx.lineWidth=7;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(ropeStart.x+2,ropeStart.y+2);ctx.lineTo(inclined.x+2,inclined.y+2);ctx.stroke();ctx.strokeStyle='#D79B11';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(ropeStart.x,ropeStart.y);ctx.lineTo(inclined.x,inclined.y);ctx.stroke();const a1=Math.atan2(inclined.y-pc.y,inclined.x-pc.x),a2=Math.atan2(vertical.y-pc.y,vertical.x-pc.x);ctx.beginPath();ctx.arc(pc.x,pc.y,pr,a1,a2,p.mode==='up');ctx.stroke();const available=Math.max(35,h-vertical.y-150),drop=Math.min(62+progress*Math.min(115,available),available),my=vertical.y+drop;ctx.beginPath();ctx.moveTo(vertical.x,vertical.y);ctx.lineTo(vertical.x,my);ctx.stroke();
+    ctx.save();ctx.translate(cartCenter.x,cartCenter.y);ctx.rotate(th);ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=12;ctx.shadowOffsetY=7;const green=ctx.createLinearGradient(0,-ch/2,0,ch/2);green.addColorStop(0,'#C8FF78');green.addColorStop(.24,'#89F336');green.addColorStop(1,'#55B900');ctx.fillStyle=green;ctx.strokeStyle='#1E2A18';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-cw/2,-ch/2,cw,ch*.68,8);ctx.fill();ctx.stroke();ctx.fillStyle='#343A3D';ctx.beginPath();ctx.roundRect(-cw/2,ch*.08,cw,ch*.43,4);ctx.fill();ctx.stroke();ctx.shadowColor='transparent';ctx.fillStyle='rgba(255,255,255,.52)';ctx.beginPath();ctx.roundRect(-cw/2+7,-ch/2+5,cw-14,5,3);ctx.fill();for(const bx of [-18,18]){ctx.strokeStyle='#2B5A0D';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(bx,-3,8,0,Math.PI);ctx.stroke()}for(const wx of [-22,22]){ctx.fillStyle='#111517';ctx.beginPath();ctx.arc(wx,ch/2+7,10,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#596268';ctx.lineWidth=2;ctx.beginPath();ctx.arc(wx,ch/2+7,6.5,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#89F336';ctx.beginPath();ctx.arc(wx,ch/2+7,2.7,0,Math.PI*2);ctx.fill()}ctx.fillStyle='#202426';ctx.fillRect(-27,-ch/2-6,9,7);ctx.strokeStyle='#D8DEE1';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(p.mode==='down'?cw/2+5:-cw/2-5,21,6,0,Math.PI*2);ctx.stroke();ctx.restore();
+    const mw=48,mh=54,bodyY=my+18;ctx.save();ctx.shadowColor='rgba(0,0,0,.38)';ctx.shadowBlur=12;ctx.shadowOffsetY=7;ctx.strokeStyle='#394248';ctx.lineWidth=5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(vertical.x,my);ctx.bezierCurveTo(vertical.x-2,my+1,vertical.x-10,my+4,vertical.x-8,my+11);ctx.bezierCurveTo(vertical.x-6,my+17,vertical.x+4,my+12,vertical.x+4,my+8);ctx.stroke();const mg=ctx.createLinearGradient(vertical.x-mw/2,bodyY,vertical.x+mw/2,bodyY);mg.addColorStop(0,'#566168');mg.addColorStop(.18,'#F7F9FA');mg.addColorStop(.42,'#AAB2B7');mg.addColorStop(.64,'#FFFFFF');mg.addColorStop(1,'#4A545B');ctx.fillStyle=mg;ctx.strokeStyle='#303940';ctx.lineWidth=2;ctx.beginPath();ctx.rect(vertical.x-mw/2,bodyY,mw,mh-8);ctx.fill();ctx.stroke();ctx.fillStyle='#DDE3E6';ctx.beginPath();ctx.ellipse(vertical.x,bodyY,mw/2,7,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#59636A';ctx.beginPath();ctx.ellipse(vertical.x,bodyY+mh-8,mw/2,7,0,0,Math.PI);ctx.fill();ctx.stroke();ctx.restore();ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(vertical.x-mw/2+10,bodyY+8,4,mh-23);
+    ctx.strokeStyle=css("--yellow");ctx.lineWidth=4;ctx.beginPath();ctx.arc(lower.x,lower.y,47,Math.PI,Math.PI+th);ctx.stroke();ctx.fillStyle=css("--text");ctx.font="900 16px system-ui";ctx.fillText(`${p.deg}°`,lower.x-54,lower.y-12);drawInfoBox(ctx,18,42,178,"CARRO DINÁMICO",`${cartMass.value} g`,"#55B900");drawInfoBox(ctx,w-196,42,178,"MASA SUSPENDIDA",`${hangMass.value} g`,"#7B8790","right");const direction=p.mode==="down"?"Polea abajo":"Polea arriba";ctx.save();ctx.fillStyle=dark?"rgba(18,18,18,.95)":"rgba(255,255,255,.96)";ctx.strokeStyle=css("--border");ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(18,h-62,w-36,44,10);ctx.fill();ctx.stroke();ctx.fillStyle=css("--text");ctx.font="800 14px system-ui";ctx.textAlign="center";ctx.fillText(`Recorrido: ${p.L.toFixed(2)} m   ·   μ = ${p.mu.toFixed(2)}   ·   g = ${p.g.toFixed(2)} m/s²   ·   ${direction}`,w/2,h-35);ctx.restore();
+  };
+
+  function drawChart(canvas, key, color, yLabel){
+    const {ctx,w,h}=fitCanvas(canvas);
+    ctx.clearRect(0,0,w,h);
+    const pad={l:48,r:16,t:16,b:36};
+    const plotW=w-pad.l-pad.r, plotH=h-pad.t-pad.b;
+    const text=css('--muted'), border=css('--border');
+
+    const pts=data.length?data:[{t:0,[key]:0}];
+    const maxT=Math.max(1, ...pts.map(d=>d.t));
+    let maxY=Math.max(...pts.map(d=>Math.abs(d[key]||0)),0.1);
+    if(key==='x') maxY=Math.max(maxY,params().L);
+    maxY*=1.12;
+
+    ctx.strokeStyle=border;ctx.lineWidth=1;ctx.fillStyle=text;ctx.font='11px system-ui';
+    for(let i=0;i<=4;i++){
+      const y=pad.t+plotH*i/4;
+      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+      const val=(maxY*(1-i/4)).toFixed(key==='a'?2:2);
+      ctx.fillText(val,4,y+4);
+    }
+    for(let i=0;i<=4;i++){
+      const x=pad.l+plotW*i/4;
+      ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,h-pad.b);ctx.stroke();
+      ctx.fillText((maxT*i/4).toFixed(1),x-8,h-14);
+    }
+
+    ctx.fillStyle=text;ctx.fillText('t (s)',w/2-10,h-2);
+    ctx.save();ctx.translate(12,h/2+20);ctx.rotate(-Math.PI/2);ctx.fillText(yLabel,0,0);ctx.restore();
+
+    ctx.strokeStyle=color;ctx.lineWidth=3;ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.beginPath();
+    pts.forEach((d,i)=>{
+      const x=pad.l+(d.t/maxT)*plotW;
+      const y=pad.t+plotH-(Math.max(0,d[key]||0)/maxY)*plotH;
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    });
+    ctx.stroke();
+
+    // current theoretical point even between samples
+    const now={t:simT,x:simX,v:simV,a:simA};
+    const x=pad.l+(Math.min(now.t,maxT)/maxT)*plotW;
+    const y=pad.t+plotH-(Math.max(0,now[key]||0)/maxY)*plotH;
+    ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();
+  }
+
+  function drawAll(){
+    drawScene();
+    drawChart(xChart,'x',css('--cyan'),'x (m)');
+    drawChart(vChart,'v',css('--violet2'),'v (m/s)');
+    drawChart(aChart,'a',css('--magenta2'),'a (m/s²)');
+  }
+
+  window.addEventListener('resize',drawAll);
+  bindDial(angleDial,angle,0,30,1);
+  bindDial(frictionDial,friction,0,1,0.01);
+  updateLabels();
+  reset();
+})();
+</script>
+</body>
+</html>
